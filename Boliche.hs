@@ -1,77 +1,68 @@
+-- Definimos El TipoCliente
+data TipoCliente = Cliente {
+  nombreCliente :: String,
+  resistencia :: Int,
+  listaAmigos :: [TipoCliente]
+} deriving (Show,Eq)
 
---Definimos El TipoCliente
-data TipoCliente = Cliente { 
-	nombreCliente :: String, 
-	resistencia :: Int, 
-	listaAmigos :: [TipoCliente]
-} deriving(Show)
+-- Definimos los clientes que se solicitaron
+rodri :: TipoCliente
+rodri = Cliente "Rodri" 55 []
 
+marcos :: TipoCliente
+marcos = Cliente "Marcos" 40 [rodri]
 
+cristian :: TipoCliente
+cristian = Cliente "Cristian" 2 []
 
---Definimos la bebida como un nombre y su efecto 
-data TipoBebida = Bebida {
-	nombreBebida :: String,
-	efecto :: (TipoCliente -> TipoCliente)
-} 
+ana :: TipoCliente
+ana = Cliente "Ana" 120 [marcos, rodri]
 
+-- Definimos el tipo de bebida
+data TipoBebida = GrogXD | JarraLoca | Klusener { sabor :: String } | Tintico | Soda { fuerza :: Int }
 
-{-Definicion Del Efecto De Cada Bebida-}
-
-cambiarResistencia :: (Int -> Int) -> TipoCliente -> TipoCliente
-cambiarResistencia funcion cliente = cliente { resistencia = (funcion (resistencia  cliente)) }
-
-
-{-VER SI SE DEBE AGREGAR ALGO MAS-}
-grog_xd_efecto :: TipoCliente -> TipoCliente
-grog_xd_efecto cliente = cliente { resistencia = 0 }
-
-jarra_loca_efecto :: TipoCliente -> TipoCliente
-jarra_loca_efecto cliente = cambiarResistencia (10 -) cliente
-
-klusener_efecto :: TipoCliente -> TipoCliente
-klusener_efecto cliente = cliente
-
-tintico_efecto :: TipoCliente -> TipoCliente
-tintico_efecto cliente = cliente
-
-soda_efecto :: TipoCliente -> TipoCliente
-soda_efecto cliente = cliente
-
-{-Definicion de la bebida y su efecto-}
---para el klusner ver de como poner el sabor y en la jarra  popular la esprituosidad 
-grog_xd = Bebida "Grog XD" grog_xd_efecto
-jarra_loca = Bebida "Jarra Loca" jarra_loca_efecto
-klusener = Bebida "klusener" klusener_efecto
-tintico = Bebida "tintico" tintico_efecto
-soda = Bebida "soda" soda_efecto
-
---Definimos A Los CLientes Solicitados 
-rodri = Cliente "Rodri"     55 []
-marcos = Cliente "Marcos"    40 [rodri]
-cristian = Cliente "Cristian"  2  []
-ana = Cliente "Ana"       120 [marcos, rodri]
---se Agrego el cliente Roberto Carlos
-robertoCarlos= Clinete "Roberto Carlos" 165 []               
-
-
-
---La Funcion Como Esta Devuelve cuan  ebrio  esta un cliente fresco piola o duro 
+-- La Funcion Como Esta devuelve cuán ebrio está un cliente: fresco, piola o duro
 comoEsta :: TipoCliente -> String
-comoEsta cliente 
-	| resistencia cliente > 50 = "fresco"
-	| resistencia cliente < 50 &&  length (listaAmigos cliente) > 1 = "piola"
-	| otherwise = "duro"
+comoEsta cliente
+  | resistencia cliente > 50 = "fresco"
+  | resistencia cliente < 50 && length (listaAmigos cliente) > 1 = "piola"
+  | otherwise = "duro"
 
---Permite a un argegar un clineta la lista de amigos de otro cliente 
+-- Permite agregar a un cliente a la lista de amigos de otro cliente
 agregarAmigo :: TipoCliente -> TipoCliente -> TipoCliente
-agregarAmigo cliente amigo 
-	| ((nombreCliente cliente) == (nombreCliente amigo)) || (any (((==) (nombreCliente amigo)).nombreCliente) (listaAmigos cliente)) = cliente
-	| otherwise = cliente { listaAmigos = amigo : (listaAmigos cliente) } 
+agregarAmigo cliente amigo
+  | cliente == amigo = cliente -- No se puede agregar a sí mismo como amigo
+  | amigo `elem` listaAmigos cliente = cliente -- No se puede agregar más de una vez al mismo amigo
+  | otherwise = cliente { listaAmigos = amigo : listaAmigos cliente }
 
+-- Efecto de la bebida en el cliente
+efectoBebida :: TipoBebida -> TipoCliente -> TipoCliente
+efectoBebida GrogXD cliente = cliente { resistencia = 0 }
+efectoBebida JarraLoca cliente = cliente { resistencia = resistencia cliente - 10, listaAmigos = map afectarAmigo (listaAmigos cliente) }
+  where
+    afectarAmigo amigo = amigo { resistencia = resistencia amigo - 10 }
+efectoBebida (Klusener gusto) cliente = cliente { resistencia = resistencia cliente - length gusto }
+efectoBebida Tintico cliente = cliente { resistencia = resistencia cliente + (length $ listaAmigos cliente) * 5 }
+efectoBebida (Soda fuerza) cliente = cliente { nombreCliente = replicate fuerza 'r' ++ nombreCliente cliente }
 
+-- Función para rescatarse
+rescatarse :: Int -> TipoCliente -> TipoCliente
+rescatarse horas cliente
+  | horas > 3 = cliente { resistencia = resistencia cliente + 200 }
+  | otherwise = cliente { resistencia = resistencia cliente + 100 }
 
---Funcion que permite 'rescatarse' a  un cliente
-rescatarse :: TipoCliente -> Int -> TipoCliente
-rescatarse cliente horas | horas > 3 = cliente { resistencia = (resistencia cliente) + 200 }
-						 | horas > 0 = cliente { resistencia = (resistencia cliente) + 100 }
-						 | otherwise = cliente 
+-- Itinerario de Ana
+itinerarioAna :: TipoCliente -> TipoCliente
+itinerarioAna cliente =
+  let paso1 = efectoBebida JarraLoca cliente
+      paso2 = efectoBebida (Klusener "Chocolate") paso1
+      paso3 = rescatarse 2 paso2
+      paso4 = efectoBebida (Klusener "Huevo") paso3
+  in paso4
+
+-- Ejecución de la consulta del itinerario de Ana
+main :: IO ()
+main = do
+  let resultado = itinerarioAna ana
+  putStrLn $ "Estado final de Ana: " ++ show resultado
+  putStrLn $ "¿Cómo está Ana? " ++ comoEsta resultado

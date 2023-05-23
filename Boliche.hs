@@ -1,3 +1,5 @@
+
+
 -- Definimos El TipoCliente
 data TipoCliente = Cliente {
   nombreCliente :: String,
@@ -43,13 +45,23 @@ efectoBebida JarraLoca cliente = cliente { resistencia = resistencia cliente - 1
     afectarAmigo amigo = amigo { resistencia = resistencia amigo - 10 }
 efectoBebida (Klusener gusto) cliente = cliente { resistencia = resistencia cliente - length gusto }
 efectoBebida Tintico cliente = cliente { resistencia = resistencia cliente + (length $ listaAmigos cliente) * 5 }
-efectoBebida (Soda fuerza) cliente = cliente { nombreCliente = replicate fuerza 'r' ++ nombreCliente cliente }
+efectoBebida (Soda fuerza) cliente = cliente { nombreCliente = "e" ++ replicate fuerza 'r' ++ "p" ++ nombreCliente cliente }
 
 -- Función para rescatarse
 rescatarse :: Int -> TipoCliente -> TipoCliente
 rescatarse horas cliente
   | horas > 3 = cliente { resistencia = resistencia cliente + 200 }
   | otherwise = cliente { resistencia = resistencia cliente + 100 }
+
+
+mostrarResistencia :: TipoCliente -> String
+mostrarResistencia cliente = "Resistencia: " ++ show (resistencia cliente)
+
+mostrarAmigos :: TipoCliente -> String
+mostrarAmigos cliente = "Amigos: " ++ show (length (listaAmigos cliente))
+
+mostrarNombre :: TipoCliente -> String
+mostrarNombre cliente = "Nombre: " ++ nombreCliente cliente
 
 main :: IO ()
 main = do
@@ -67,8 +79,6 @@ main = do
   let marcosConAmigos = agregarAmigo (agregarAmigo marcos ana) rodri
 
   putStrLn "Agregar a Ana y Rodri como amigos de Marcos:"
-  putStrLn $ "Estado de Marcos después de agregar a Ana y Rodri: " ++ show marcosConAmigos
-  putStrLn ""
 
   -- Verificar el estado de Marcos después de agregar amigos
   putStrLn $ "¿Cómo está Marcos Después de Hacer Amigos? " ++ comoEsta marcosConAmigos
@@ -98,7 +108,6 @@ main = do
   putStrLn ""
 
   let resultado4 = efectoBebida (Klusener "Huevo") resultado3
-  
   putStrLn $ "Resistencia de Ana después de tomar un Klusener de huevo:\n" ++ show (resistencia resultado4)
   putStrLn ""
   putStrLn $ "Fue Una Noche Agitda ¿Como Terimno Ana Despues Del Boliche?"
@@ -109,4 +118,83 @@ main = do
   putStrLn ""
   putStrLn "¿Como Terminaron Los Amigos De Ana La Noche De Boliche?:"
   mapM_ (\amigo -> putStrLn $ nombreCliente amigo ++ ": " ++ comoEsta amigo) (listaAmigos resultado4)
+  -- Intentar agregar a Rodri como amigo de Rodri
+  putStrLn ""
+  let rodriConAmigo = agregarAmigo rodri rodri
+  putStrLn $ "Estado de Rodri después de intentar agregarlo como amigo de sí mismo: " ++ show rodriConAmigo
+  putStrLn ""
+  -- Intentar que Marcos reconozca a Rodri como amigo
+  let marcosConAmigoReconocido = agregarAmigo marcos rodri
+  putStrLn $ "Estado de Marcos después de intentar reconocer a Rodri como amigo: " ++ show marcosConAmigoReconocido
+  putStrLn ""
+  -- Hacer que Rodri reconozca a Marcos como amigo
+  let rodriConMarcosAmigo = agregarAmigo rodri marcos
+  putStrLn $ "Estado de Rodri después de reconocer a Marcos como amigo: " ++ show rodriConMarcosAmigo
+  putStrLn ""
+  putStrLn "---------------------------------------------------------------------------------"
+  putStrLn $ "Resistencia De Ana Antes De Tomar un GrogXD:\n" ++ mostrarResistencia ana
+  putStrLn ""
+  let ana1 = efectoBebida GrogXD ana
+  putStrLn $ "Resistencia De Ana Despues De Tomar Un GrogXD:\n" 
+  putStrLn $ mostrarResistencia ana1
+  putStrLn ""
+  putStrLn "---------------------------------------------------------------------------------"
+  putStrLn $ "Resistencia De Ana Antes De Tomar Una Jarra Loca:\n" ++ mostrarResistencia ana
+  putStrLn ""
+  let ana2 = efectoBebida JarraLoca ana
+  putStrLn $ "Resistencia De Ana Despues De Tomar Un Jarra Loca:\n"
+  putStrLn $ mostrarResistencia ana2
+  putStrLn ""
+  putStrLn $ "Resistencia de sus amigos: " ++ show (map resistencia (listaAmigos ana2))
+  putStrLn ""
+  putStrLn "---------------------------------------------------------------------------------"
+  putStrLn $ "Resistencia De Ana Antes De Tomar Un Klusener de huevo:\n" ++ mostrarResistencia ana
+  let ana3 =  efectoBebida (Klusener "Huevo") ana
+  putStrLn $ "Resistencia De Ana Despues de Tomar UnKlusener de huevo:\n"
+  putStrLn $ mostrarResistencia ana3
+  putStrLn ""
+  putStrLn "---------------------------------------------------------------------------------"
+  putStrLn $ "Resistencia De Crisitian antes de tomar un Tintico :\n" ++ mostrarResistencia cristian
+  putStrLn ""
+  let cristian1= efectoBebida Tintico cristian
+  putStrLn $ "Resistencia De Cristian Despues de Tomar Un Tintico:\n"
+  putStrLn $ mostrarResistencia cristian1
+  putStrLn ""
+  putStrLn "---------------------------------------------------------------------------------"
+  putStrLn $ "Resistencia De Ana antes de tomar un Tintico :\n" ++ mostrarResistencia ana
+  putStrLn ""
+  let ana4= efectoBebida Tintico ana
+  putStrLn $ "Resistencia De Cristian Despues de Tomar Un Tintico:\n"
+  putStrLn $ mostrarResistencia ana4
+  putStrLn ""
+  putStrLn "---------------------------------------------------------------------------------"
+  putStrLn $ "Nombre De Rodri antes de tomar una soda de fuerza 2  :\n" ++ mostrarNombre rodri
+  putStrLn ""
+  let rodri1 = efectoBebida (Soda 2) rodri
+  putStrLn $ "Nombre De Rodri despues de tomar una soda de fuerza 2  :\n"
+  putStrLn $ mostrarNombre rodri1
+  putStrLn ""
+  putStrLn "---------------------------------------------------------------------------------"
+  putStrLn $ "Nombre De Rodri antes de tomar una soda de fuerza 10  :\n" ++ mostrarNombre rodri
+  putStrLn ""
+  let rodri2 = efectoBebida (Soda 10) rodri
+  putStrLn $ "Nombre De Rodri despues de tomar una soda de fuerza 10  :\n"
+  putStrLn $ mostrarNombre rodri2
+  putStrLn ""
+  putStrLn "---------------------------------------------------------------------------------"
+  putStrLn $ "Nombre De Rodri antes de tomar una soda de fuerza 0  :\n" ++ mostrarNombre ana
+  putStrLn ""
+  let ana5 = efectoBebida (Soda 0) ana
+  putStrLn $ "Nombre De Rodri despues de tomar una soda de fuerza 0  :\n"
+  putStrLn $ mostrarNombre ana5
+  putStrLn ""
+  putStrLn "---------------------------------------------------------------------------------"
+
+
+
+
+
+
+
+
 

@@ -1,11 +1,12 @@
 
+-- Klusener supercalifragilisticoespialidoso
 
 -- Definimos El TipoCliente
 data TipoCliente = Cliente {
   nombreCliente :: String,
   resistencia :: Int,
-  listaAmigos :: [TipoCliente]
-  bebidas :: [TipoBebida]
+  listaAmigos :: [TipoCliente],
+  bebidas :: [TipoBebida]
 } deriving (Show,Eq)
 
 -- Definimos los clientes que se solicitaron
@@ -20,9 +21,16 @@ cristian = Cliente "Cristian" 2 [] [GrogXD, JarraLoca]  -- Cristian tomó un gro
 
 ana :: TipoCliente
 ana = Cliente "Ana" 120 [marcos, rodri] []  -- Ana no tomó nada
-
 -- Definimos el tipo de bebida
-data TipoBebida = GrogXD | JarraLoca | Klusener { sabor :: String } | Tintico | Soda { fuerza :: Int }
+data TipoBebida = GrogXD | JarraLoca | Klusener { sabor :: String } | Tintico | Soda { fuerza :: Int } deriving Eq
+
+-- Derivamos la instancia de Show para TipoBebida
+instance Show TipoBebida where
+  show GrogXD = "GrogXD"
+  show JarraLoca = "JarraLoca"
+  show (Klusener sabor) = "Klusener " ++ sabor
+  show Tintico = "Tintico"
+  show (Soda fuerza) = "Soda " ++ show fuerza
 
 -- La Funcion Como Esta devuelve cuán ebrio está un cliente: fresco, piola o duro
 comoEsta :: TipoCliente -> String
@@ -55,18 +63,19 @@ rescatarse horas cliente
   | otherwise = cliente { resistencia = resistencia cliente + 100 }
 
 
+--Muestra La Resistencia de un cliente
 mostrarResistencia :: TipoCliente -> String
 mostrarResistencia cliente = "Resistencia: " ++ show (resistencia cliente)
 
-mostrarAmigos :: TipoCliente -> String
-mostrarAmigos cliente = "Amigos: " ++ show (length (listaAmigos cliente))
 
+--funcion para  mostrar el nombre del cliente luego de la soda
 mostrarNombre :: TipoCliente -> String
 mostrarNombre cliente = "Nombre: " ++ nombreCliente cliente
 
+--Dada una lista de bebidas y un cliente devuelve al cliente luego de haaber tomado las bebidas
 tomarTragos :: TipoCliente -> [TipoBebida] -> TipoCliente
 tomarTragos cliente [] = cliente -- Caso base: no hay más tragos para tomar
-tomarTragos cliente (trago:restoTragos) = tomarTragos (efectoBebida trago cliente) bs -- Hay más tragos por tomar
+tomarTragos cliente (trago:restoTragos) = tomarTragos (efectoBebida trago cliente) restoTragos -- Hay más tragos por tomar
  
 main :: IO ()
 main = do
@@ -164,11 +173,13 @@ main = do
   putStrLn $ mostrarNombre rodrierp
   putStrLn ""
   putStrLn "---------------------------------------------------------------------------------"
-  putStrLn $ "Nombre De Rodri antes de tomar una soda de fuerza 0  :\n" ++ mostrarNombre ana
+  putStrLn $ "Nombre De Ana antes de tomar una soda de fuerza 0  :\n" ++ mostrarNombre ana
   putStrLn ""
   let ana5 = efectoBebida (Soda 0) ana
-  putStrLn $ "Nombre De Rodri despues de tomar una soda de fuerza 0  :\n"
-  putStrLn $ mostrarNombre ana5
+  let ana = ana5
+  putStrLn $ "Nombre De Ana despues de tomar una soda de fuerza 0  :\n"
+  putStrLn $ mostrarNombre ana
+
   putStrLn ""
   putStrLn "---------------------------------------------------------------------------------"
   putStrLn $ "Resistencia De Rodri antes de rescatarse :\n" ++ mostrarResistencia rodri

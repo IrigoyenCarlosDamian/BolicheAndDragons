@@ -5,20 +5,21 @@ data TipoCliente = Cliente {
   nombreCliente :: String,
   resistencia :: Int,
   listaAmigos :: [TipoCliente]
+  bebidas :: [TipoBebida]
 } deriving (Show,Eq)
 
 -- Definimos los clientes que se solicitaron
 rodri :: TipoCliente
-rodri = Cliente "Rodri" 55 []
+rodri = Cliente "Rodri" 55 [] [Tintico]  -- Rodri tomó un tintico
 
 marcos :: TipoCliente
-marcos = Cliente "Marcos" 40 [rodri]
+marcos = Cliente "Marcos" 40 [rodri] [Klusener "guinda"]  -- Marcos tomó un Klusener de guinda
 
 cristian :: TipoCliente
-cristian = Cliente "Cristian" 2 []
+cristian = Cliente "Cristian" 2 [] [GrogXD, JarraLoca]  -- Cristian tomó un grog XD y una jarraLoca
 
 ana :: TipoCliente
-ana = Cliente "Ana" 120 [marcos, rodri]
+ana = Cliente "Ana" 120 [marcos, rodri] []  -- Ana no tomó nada
 
 -- Definimos el tipo de bebida
 data TipoBebida = GrogXD | JarraLoca | Klusener { sabor :: String } | Tintico | Soda { fuerza :: Int }
@@ -63,6 +64,10 @@ mostrarAmigos cliente = "Amigos: " ++ show (length (listaAmigos cliente))
 mostrarNombre :: TipoCliente -> String
 mostrarNombre cliente = "Nombre: " ++ nombreCliente cliente
 
+tomarTragos :: TipoCliente -> [TipoBebida] -> TipoCliente
+tomarTragos cliente [] = cliente -- Caso base: no hay más tragos para tomar
+tomarTragos cliente (trago:restoTragos) = tomarTragos (efectoBebida trago cliente) bs -- Hay más tragos por tomar
+ 
 main :: IO ()
 main = do
   putStrLn "La Noche De  Rodri Cristian y Marcos:"
@@ -83,38 +88,16 @@ main = do
   -- Verificar el estado de Marcos después de agregar amigos
   putStrLn $ "¿Cómo está Marcos Después de Hacer Amigos? " ++ comoEsta marcosConAmigos
   putStrLn ""
-  putStrLn "La Noche De Ana:\n"
+  putStrLn $ "¿Cómo está Ana Antes De Arrancar La Noche " ++ comoEsta ana
   putStrLn ""
-  putStrLn $ "¿Cómo está Ana antes de arrancar la noche ? " ++ comoEsta ana
-  putStrLn $ "Resistencia de Ana:\n" ++ mostrarResistencia ana 
+  putStrLn $ "¿Cómo estan los amigos de ana Antes De Arrancar la Nocehe"   
+  putStrLn ""
   putStrLn $ "Resistencia de sus amigos: " ++ show (map resistencia (listaAmigos ana))
   putStrLn ""
-  let anaJarraLoca = efectoBebida JarraLoca ana
-  putStrLn $ "Resistencia de Ana después de tomar una jarra loca:\n" ++ mostrarResistencia anaJarraLoca
-  putStrLn $ "Resistencia de sus amigos después de tomar una jarra loca: " ++ show (map resistencia (listaAmigos anaJarraLoca))
-  putStrLn ""
+  let anaAux = ((efectoBebida (Klusener "huevo")) . (rescatarse 2) . (efectoBebida (Klusener "chocolate")) . (efectoBebida JarraLoca)) ana
+  putStrLn $ "Resistencia De Ana Despues De Las Bebidas:\n" ++ mostrarResistencia anaAux
+  putStrLn $ "¿Cómo estan los amigos de ana Despues de las Bebidas:\n"++ show (map resistencia (listaAmigos anaAux))
 
-  let anaKlusnerChocolate = efectoBebida (Klusener "Chocolate") anaJarraLoca
-  putStrLn $ "Resistencia de Ana después de tomar un Klusener de chocolate:\n" ++ mostrarResistencia anaKlusnerChocolate
-  putStrLn ""
-  putStrLn $ "El De Seguridad Se Puso La Gorra ,Te Rescatas o te tengo que sacar: "
-  putStrLn ""
-  let anaRescatada = rescatarse 2 anaKlusnerChocolate
-  putStrLn $ "Resistencia de Ana después de rescatarse:\n"  ++ mostrarResistencia anaRescatada
-  putStrLn ""
-
-  let anaKlusnerHuevo = efectoBebida (Klusener "Huevo") anaRescatada
-  putStrLn $ "Resistencia de Ana después de tomar un Klusener de huevo:\n" ++ mostrarResistencia anaKlusnerHuevo
-  putStrLn ""
-  putStrLn $ "Resistencia de sus amigos después de tomar una jarra loca: " ++ show (map resistencia (listaAmigos anaKlusnerHuevo))
-  putStrLn ""
-  putStrLn $ "Fue Una Noche Agitda ¿Como Terimno Ana Despues Del Boliche?"
-  putStrLn ""
-  putStrLn $ "¿Cómo está Ana? " ++ comoEsta anaKlusnerHuevo
-  putStrLn ""
-  putStrLn ""
-  putStrLn "¿Como Terminaron Los Amigos De Ana La Noche De Boliche?:"
-  mapM_ (\amigo -> putStrLn $ nombreCliente amigo ++ ": " ++ comoEsta amigo) (listaAmigos anaKlusnerHuevo)
 
   -- Intentar agregar a Rodri como amigo de Rodri
   putStrLn ""
@@ -176,8 +159,9 @@ main = do
   putStrLn $ "Nombre De Rodri antes de tomar una soda de fuerza 10  :\n" ++ mostrarNombre rodri
   putStrLn ""
   let rodri2 = efectoBebida (Soda 10) rodri
+  let rodrierp= efectoBebida(Soda 2) rodri2
   putStrLn $ "Nombre De Rodri despues de tomar una soda de fuerza 10  :\n"
-  putStrLn $ mostrarNombre rodri2
+  putStrLn $ mostrarNombre rodrierp
   putStrLn ""
   putStrLn "---------------------------------------------------------------------------------"
   putStrLn $ "Nombre De Rodri antes de tomar una soda de fuerza 0  :\n" ++ mostrarNombre ana
@@ -190,13 +174,13 @@ main = do
   putStrLn $ "Resistencia De Rodri antes de rescatarse :\n" ++ mostrarResistencia rodri
   putStrLn ""
   let rodri3 = rescatarse 5 rodri
-  putStrLn $ "Resistencia de Rodri después de rescatarse:\n" ++ mostrarResistencia rodri3
+  putStrLn $ "Resistencia de Rodri después de rescatarse 5 horas:\n" ++ mostrarResistencia rodri3
   putStrLn ""
   putStrLn "---------------------------------------------------------------------------------"
   putStrLn $ "Resistencia De Rodri antes de rescatarse :\n" ++ mostrarResistencia rodri
   putStrLn ""
   let rodri4 = rescatarse 1 rodri
-  putStrLn $ "Resistencia de Rodri después de rescatarse:\n" ++ mostrarResistencia rodri4
+  putStrLn $ "Resistencia de Rodri después de rescatarse 1 hora:\n" ++ mostrarResistencia rodri4
   putStrLn ""
   putStrLn "---------------------------------------------------------------------------------"
 

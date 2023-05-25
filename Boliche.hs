@@ -1,5 +1,4 @@
 
--- Klusener supercalifragilisticoespialidoso
 
 -- Definimos El TipoCliente
 data TipoCliente = Cliente {
@@ -9,6 +8,22 @@ data TipoCliente = Cliente {
   bebidas :: [TipoBebida]
 } deriving (Show,Eq)
 
+
+data TipoItinerario = Itinerario { 
+  nombreItinerario :: String,
+  duracion :: Float, 
+  detalle :: [TipoCliente -> TipoCliente]
+} 
+
+
+
+
+
+
+--mezclaExplosiva:: TipoItinerario 
+--mezclaExplosiva  = Itinerario "Mezcla explosiva" 2.5 [tomarBebida GrogXD cliente,tomarBebida GrogXD cliente,
+-- tomarBebida (Klusener "huevo") cliente, tomarBebida (Klusener "frutilla") cliente ] 
+ 
 -- Definimos los clientes que se solicitaron
 rodri :: TipoCliente
 rodri = Cliente "Rodri" 55 [] [Tintico]  -- Rodri tomó un tintico
@@ -21,8 +36,17 @@ cristian = Cliente "Cristian" 2 [] [GrogXD, JarraLoca]  -- Cristian tomó un gro
 
 ana :: TipoCliente
 ana = Cliente "Ana" 120 [marcos, rodri] []  -- Ana no tomó nada
+
+robertoCarlos :: TipoCliente
+robertoCarlos = Cliente "Roberto Carlos" 165 [] []
+
+
 -- Definimos el tipo de bebida
-data TipoBebida = GrogXD | JarraLoca | Klusener { sabor :: String } | Tintico | Soda { fuerza :: Int } deriving Eq
+data TipoBebida = GrogXD | JarraLoca | Klusener { sabor :: String } | Tintico | Soda { fuerza :: Int }  deriving Eq
+
+
+
+
 
 -- Derivamos la instancia de Show para TipoBebida
 instance Show TipoBebida where
@@ -47,20 +71,21 @@ agregarAmigo cliente amigo
   | otherwise = cliente { listaAmigos = amigo : listaAmigos cliente }
 
 -- Efecto de la bebida en el cliente
-efectoBebida :: TipoBebida -> TipoCliente -> TipoCliente
-efectoBebida GrogXD cliente = cliente { resistencia = 0 }
-efectoBebida JarraLoca cliente = cliente { resistencia = resistencia cliente - 10, listaAmigos = map afectarAmigo (listaAmigos cliente) }
+tomarBebida :: TipoBebida -> TipoCliente -> TipoCliente
+tomarBebida GrogXD cliente = cliente { resistencia = 0, bebidas = GrogXD : bebidas cliente} 
+tomarBebida JarraLoca cliente = cliente { resistencia = resistencia cliente - 10, bebidas = JarraLoca : bebidas cliente, listaAmigos = map afectarAmigo (listaAmigos cliente)}
   where
-    afectarAmigo amigo = amigo { resistencia = resistencia amigo - 10 }
-efectoBebida (Klusener gusto) cliente = cliente { resistencia = resistencia cliente - length gusto }
-efectoBebida Tintico cliente = cliente { resistencia = resistencia cliente + (length $ listaAmigos cliente) * 5 }
-efectoBebida (Soda fuerza) cliente = cliente { nombreCliente = "e" ++ replicate fuerza 'r' ++ "p" ++ nombreCliente cliente }
+    afectarAmigo amigo = amigo { resistencia = resistencia amigo - 10}
+tomarBebida (Klusener gusto) cliente = cliente { resistencia = (resistencia cliente - length gusto), bebidas = (Klusener gusto) : bebidas cliente }
+tomarBebida Tintico cliente = cliente { resistencia = resistencia cliente + (length $ listaAmigos cliente) * 5, bebidas = Tintico : bebidas cliente}
+tomarBebida (Soda fuerza) cliente = cliente { nombreCliente = "e" ++ replicate fuerza 'r' ++ "p" ++ nombreCliente cliente, bebidas = (Soda fuerza) : bebidas cliente}
+
 
 -- Función para rescatarse
 rescatarse :: Int -> TipoCliente -> TipoCliente
 rescatarse horas cliente
   | horas > 3 = cliente { resistencia = resistencia cliente + 200 }
-  | horas <= 0 = error "Las horas deben ser mayores a 0"
+  | horas <= 0 = cliente
   | otherwise = cliente { resistencia = resistencia cliente + 100 }
 
 
@@ -76,8 +101,21 @@ mostrarNombre cliente = "Nombre: " ++ nombreCliente cliente
 --Dada una lista de bebidas y un cliente devuelve al cliente luego de haaber tomado las bebidas
 tomarTragos :: TipoCliente -> [TipoBebida] -> TipoCliente
 tomarTragos cliente [] = cliente -- Caso base: no hay más tragos para tomar
-tomarTragos cliente (trago:restoTragos) = tomarTragos (efectoBebida trago cliente) restoTragos -- Hay más tragos por tomar
+tomarTragos cliente (trago:restoTragos) = tomarTragos (tomarBebida trago cliente) restoTragos -- Hay más tragos por tomar
  
+
+dameOtro :: TipoCliente -> TipoCliente
+dameOtro cliente  
+  | length ( bebidas cliente) == 0 = cliente
+  | otherwise = tomarBebida (head(bebidas cliente)) cliente
+
+
+cualesPuedeTomar :: TipoCliente -> [TipoBebida] -> [TipoBebida]
+cualesPuedeTomar cliente [] = []
+
+
+
+
 main :: IO ()
 main = do
   putStrLn "La Noche De  Rodri Cristian y Marcos:"
@@ -106,11 +144,14 @@ main = do
   putStrLn ""
   putStrLn $ "Resistencia de sus amigos: " ++ show (map resistencia (listaAmigos ana))
   putStrLn ""
-  let anaAux = ((efectoBebida (Klusener "huevo")) . (rescatarse 2) . (efectoBebida (Klusener "chocolate")) . (efectoBebida JarraLoca)) ana
+  let anaAux = ((tomarBebida (Klusener "huevo")) . (rescatarse 2) . (tomarBebida (Klusener "chocolate")) . (tomarBebida JarraLoca)) ana
   putStrLn $ "Resistencia De Ana Despues De Las Bebidas:\n" ++ mostrarResistencia anaAux
+  putStrLn $ "Ana despues de tomar:" ++ show anaAux
   putStrLn $ "¿Cómo estan los amigos de ana Despues de las Bebidas:\n"++ show (map resistencia (listaAmigos anaAux))
-
-
+  putStrLn ""
+  putStrLn ""
+  let ana500 = dameOtro anaAux 
+  putStrLn $ "Estado de Ana despues de pedir otro:" ++ show ana500
   -- Intentar agregar a Rodri como amigo de Rodri
   putStrLn ""
   let rodriConAmigo = agregarAmigo rodri rodri
@@ -127,14 +168,14 @@ main = do
   putStrLn "---------------------------------------------------------------------------------"
   putStrLn $ "Resistencia De Ana Antes De Tomar un GrogXD:\n" ++ mostrarResistencia ana
   putStrLn ""
-  let ana1 = efectoBebida GrogXD ana
+  let ana1 = tomarBebida GrogXD ana
   putStrLn $ "Resistencia De Ana Despues De Tomar Un GrogXD:\n" 
   putStrLn $ mostrarResistencia ana1
   putStrLn ""
   putStrLn "---------------------------------------------------------------------------------"
   putStrLn $ "Resistencia De Ana Antes De Tomar Una Jarra Loca:\n" ++ mostrarResistencia ana
   putStrLn ""
-  let ana2 = efectoBebida JarraLoca ana
+  let ana2 = tomarBebida JarraLoca ana
   putStrLn $ "Resistencia De Ana Despues De Tomar Un Jarra Loca:\n"
   putStrLn $ mostrarResistencia ana2
   putStrLn ""
@@ -142,43 +183,43 @@ main = do
   putStrLn ""
   putStrLn "---------------------------------------------------------------------------------"
   putStrLn $ "Resistencia De Ana Antes De Tomar Un Klusener de huevo:\n" ++ mostrarResistencia ana
-  let ana3 =  efectoBebida (Klusener "Huevo") ana
+  let ana3 =  tomarBebida (Klusener "Huevo") ana
   putStrLn $ "Resistencia De Ana Despues de Tomar UnKlusener de huevo:\n"
   putStrLn $ mostrarResistencia ana3
   putStrLn ""
   putStrLn "---------------------------------------------------------------------------------"
   putStrLn $ "Resistencia De Crisitian antes de tomar un Tintico :\n" ++ mostrarResistencia cristian
   putStrLn ""
-  let cristian1= efectoBebida Tintico cristian
+  let cristian1= tomarBebida Tintico cristian
   putStrLn $ "Resistencia De Cristian Despues de Tomar Un Tintico:\n"
   putStrLn $ mostrarResistencia cristian1
   putStrLn ""
   putStrLn "---------------------------------------------------------------------------------"
   putStrLn $ "Resistencia De Ana antes de tomar un Tintico :\n" ++ mostrarResistencia ana
   putStrLn ""
-  let ana4= efectoBebida Tintico ana
+  let ana4= tomarBebida Tintico ana
   putStrLn $ "Resistencia De Ana Despues de Tomar Un Tintico:\n"
   putStrLn $ mostrarResistencia ana4
   putStrLn ""
   putStrLn "---------------------------------------------------------------------------------"
   putStrLn $ "Nombre De Rodri antes de tomar una soda de fuerza 2  :\n" ++ mostrarNombre rodri
   putStrLn ""
-  let rodri1 = efectoBebida (Soda 2) rodri
+  let rodri1 = tomarBebida (Soda 2) rodri
   putStrLn $ "Nombre De Rodri despues de tomar una soda de fuerza 2  :\n"
   putStrLn $ mostrarNombre rodri1
   putStrLn ""
   putStrLn "---------------------------------------------------------------------------------"
   putStrLn $ "Nombre De Rodri antes de tomar una soda de fuerza 10  :\n" ++ mostrarNombre rodri
   putStrLn ""
-  let rodri2 = efectoBebida (Soda 10) rodri
-  let rodrierp= efectoBebida(Soda 2) rodri2
+  let rodri2 = tomarBebida (Soda 10) rodri
+  let rodrierp= tomarBebida(Soda 2) rodri2
   putStrLn $ "Nombre De Rodri despues de tomar una soda de fuerza 10  :\n"
   putStrLn $ mostrarNombre rodrierp
   putStrLn ""
   putStrLn "---------------------------------------------------------------------------------"
   putStrLn $ "Nombre De Ana antes de tomar una soda de fuerza 0  :\n" ++ mostrarNombre ana
   putStrLn ""
-  let ana5 = efectoBebida (Soda 0) ana
+  let ana5 = tomarBebida (Soda 0) ana
   let ana = ana5
   putStrLn $ "Nombre De Ana despues de tomar una soda de fuerza 0  :\n"
   putStrLn $ mostrarNombre ana

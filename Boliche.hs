@@ -42,7 +42,7 @@ comoEsta cliente
 -- Permite agregar a un cliente a la lista de amigos de otro cliente
 agregarAmigo :: TipoCliente -> TipoCliente -> TipoCliente
 agregarAmigo cliente amigo
-  | cliente == amigo = cliente -- No se puede agregar a sí mismo como amigo
+  | nombreCliente cliente == nombreCliente amigo = cliente -- No se puede agregar a sí mismo como amigo
   | amigo `elem` listaAmigos cliente = cliente -- No se puede agregar más de una vez al mismo amigo
   | otherwise = cliente { listaAmigos = amigo : listaAmigos cliente }
 
@@ -60,6 +60,7 @@ efectoBebida (Soda fuerza) cliente = cliente { nombreCliente = "e" ++ replicate 
 rescatarse :: Int -> TipoCliente -> TipoCliente
 rescatarse horas cliente
   | horas > 3 = cliente { resistencia = resistencia cliente + 200 }
+  | horas <= 0 = error "Las horas deben ser mayores a 0"
   | otherwise = cliente { resistencia = resistencia cliente + 100 }
 
 
@@ -86,6 +87,8 @@ main = do
   putStrLn $ "¿Cómo está Cristian antes de arrancar la noche ? " ++ comoEsta cristian
   putStrLn ""
   putStrLn $ "¿Cómo está Marcos antes de arrancar la noche ? " ++ comoEsta marcos
+  putStrLn ""
+  putStrLn $ "¿Como esta Ana antes de arrancar la noche? " ++ comoEsta ana
   putStrLn ""
   putStrLn "Marcos Se  Siente Solo y quiere hacer amigos:"
   putStrLn ""
